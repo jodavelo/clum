@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuario")
+@CrossOrigin("*")
 public class UsuarioRestController {
     private static final Logger log = LoggerFactory.getLogger(UsuarioRestController.class);
     @Autowired
@@ -33,15 +35,23 @@ public class UsuarioRestController {
     private UsuarioMapper usuarioMapper;
 
     @PostMapping(value = "/saveUsuario")
-    public void saveUsuario(@RequestBody
-    UsuarioDTO usuarioDTO) throws Exception {
+    public ResponseEntity<Respuesta> saveUsuario(@RequestBody UsuarioDTO usuarioDTO) throws Exception {
         try {
+        	if(usuarioDTO.getUsuarioId() == null) return ResponseEntity.badRequest().body(new Respuesta("Ingresa su id de usuario"));
+        	if(usuarioDTO.getUsuarioId().trim().equals("")) return ResponseEntity.badRequest().body(new Respuesta("Ingresa su id de usuario"));
+        	if(usuarioDTO.getContrasenia() == null) return ResponseEntity.badRequest().body(new Respuesta("Ingresa una clave"));
+        	if(usuarioDTO.getContrasenia().trim().equals("")) return ResponseEntity.badRequest().body(new Respuesta("Ingresa una clave"));
+        	if(usuarioDTO.getIdEstado_Estado() == null || usuarioDTO.getIdEstado_Estado() == 0) return ResponseEntity.badRequest().body(new Respuesta("Un estado es requerido"));
+            if(usuarioDTO.getTipoUsuarioId_TipoUsuario() == null || usuarioDTO.getTipoUsuarioId_TipoUsuario() == 0) return ResponseEntity.badRequest().body(new Respuesta("Un tipo de usuario es requerido"));
+        	if(usuarioDTO.getTerceroId_Tercero() == null || usuarioDTO.getTerceroId_Tercero() == 0) return ResponseEntity.badRequest().body(new Respuesta("Un tercero es requerido"));
             Usuario usuario = usuarioMapper.usuarioDTOToUsuario(usuarioDTO);
 
             usuarioService.saveUsuario(usuario);
+            return ResponseEntity.ok().body(new Respuesta("El usuario se ha guardado con exito"));
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw e;
+        	//return ResponseEntity.badRequest().body(new Respuesta(e.getMessage()));
         }
     }
 
